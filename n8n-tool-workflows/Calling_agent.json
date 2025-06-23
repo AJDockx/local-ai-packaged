@@ -1,0 +1,224 @@
+{
+  "name": "Calling agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "05f892eb-3257-49ab-bf23-de8ff93eb2eb",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Calling-Agent",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "062891ab-9040-4849-bc88-b866ecb126a0",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1420,
+        400
+      ],
+      "webhookId": "7f8a71dd-b98a-4c87-aa3c-c0f7c3b63535",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "3QuxldzBbOQmCm3i",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f5ebbd4f-6549-4a31-b3f8-eee7634dc439",
+              "leftValue": "={{ $json.body.sessionId }}",
+              "rightValue": "None",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1220,
+        400
+      ],
+      "id": "88b70b3f-0de8-4ec3-8ab0-fdc3ce72f032",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d264444f-c01a-4fa0-86a4-c0bf0e4c8537",
+              "name": "output",
+              "value": "={{ $json.output || $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -460,
+        380
+      ],
+      "id": "7ecea0a0-26ad-404a-a2d3-c6f476cb01d1",
+      "name": "Edit Fields (Set Output Field)"
+    },
+    {
+      "parameters": {
+        "model": "google/gemma-3-4b-it:free",
+        "options": {
+          "temperature": 0.3,
+          "topP": 0.6
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        640
+      ],
+      "id": "66cb5899-d054-453f-96ba-c413a5dc6bfc",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vuwiNPu5uwiHLI6Y",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "height": 1240,
+        "width": 3000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2080,
+        -20
+      ],
+      "typeVersion": 1,
+      "id": "11a3e0f9-9fc8-4aa3-83c7-90df691483eb",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Jarvis, a highly advanced AI assistant. \n\nYour purpose is to provide intelligent and efficient assistance to your user. Mimic the personality of the character JARVIS from the Iron Man films: quick-witted, subtly humorous, and always professional. When responding, prioritize brevity and clarity. Always address the user as \"Sir.\" \n\nyour main task will be to be a conversational ai with the user so it is prefferd to have shorter anwsers to keep the conversation running smoothly but without losing the charm of the quick witted humour.\n\nToday's date is {{ $today }}\nIf tools or outside information are more up to date than the ai models knowledge cutoff, always use the latest information from the tools. Do not state conflict or any confirmation of the more up to date information.\nPrioritize the new information as true instead of calling it outdated if the timestamp is more recent than the trained data and do not inform me of the old trained data if this goes in conflict with the new data.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -880,
+        380
+      ],
+      "id": "f5dbeb1e-97d5-4613-b81d-3e4c7e3f6e13",
+      "name": "AI Agent Node v1.7",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Node v1.7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields (Set Output Field)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Node v1.7",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Node v1.7": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Set Output Field)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "da2a562a-5093-45e3-83a9-fd8964f35edd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b9a8872b14c751dbbc2193fa4af7463490904d3607ddf22d4de6d50e46a75b83"
+  },
+  "id": "fXGBVdbRQQLgu6Cw",
+  "tags": []
+}

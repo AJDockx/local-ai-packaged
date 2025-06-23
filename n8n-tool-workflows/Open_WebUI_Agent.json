@@ -1,0 +1,1014 @@
+{
+  "name": "Open WebUI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.sessionId }}"
+      },
+      "id": "a26bb1b5-869a-4696-8fc9-a0900dfe5ed2",
+      "name": "Postgres Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        420
+      ],
+      "notesInFlow": false,
+      "credentials": {
+        "postgres": {
+          "id": "2gIyGZQdXYjWl1jO",
+          "name": "Postgres account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent with Webhook for Open WebUI",
+        "height": 1445,
+        "width": 2816,
+        "color": 6
+      },
+      "id": "8b73074f-8b26-4824-9143-2cea95ebbcd3",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        -540
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "12a01471-5b2b-422c-b040-187e2424fb15",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoke-n8n-agent",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "02e10aea-56d6-43eb-add8-c0f07d91397c",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -100
+      ],
+      "webhookId": "7f8a71dd-b98a-4c87-aa3c-c0f7c3b63535",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "3QuxldzBbOQmCm3i",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f5ebbd4f-6549-4a31-b3f8-eee7634dc439",
+              "leftValue": "={{ $json.body.sessionId }}",
+              "rightValue": "None",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        -100
+      ],
+      "id": "afcbe0ff-627b-41d5-89c7-ddbd5c3393d2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen2.5:7b-instruct-q4_K_M",
+          "mode": "list",
+          "cachedResultName": "qwen2.5:7b-instruct-q4_K_M"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        -40
+      ],
+      "id": "0d8179f3-5bb4-4396-912b-3a8bfaa87593",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "bvE59z56B4VYP4CQ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d264444f-c01a-4fa0-86a4-c0bf0e4c8537",
+              "name": "output",
+              "value": "={{ $json.output || $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        -240
+      ],
+      "id": "1503e27b-c78d-46cc-9b46-3e7f16f0bfab",
+      "name": "Edit Fields (Set Output Field)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.chatInput }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        1140,
+        -240
+      ],
+      "id": "6418e418-bcbe-4c6e-a7e4-c997df9c787e",
+      "name": "Open WebUI Metadata LLM"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.chatInput[1].type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "587ecbe6-0aed-4fbf-b526-b9591ce4e12c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d99dd270-d0d5-4b23-837e-2dcdf931e420",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4b5ea75c-d86a-414f-8052-af3c28740aa3",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        600,
+        1100
+      ],
+      "id": "1acc7477-d760-4c6e-9b10-cd7cefba03f7",
+      "name": "Switch",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.chatInput[1].type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "text"
+            },
+            {
+              "value2": "=image_url",
+              "output": 1
+            },
+            {
+              "value2": "speech",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "13851fc0-7366-4b58-bd25-3da54c8e0215",
+      "name": "CheckCommand",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        580,
+        1280
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput[1].image_url.url }}",
+        "options": {
+          "systemMessage": "You are an image analyser ai agent. \nYou will recieve images and depending on the contents of the image you need to give feedback.\nIf its an image with mostly text it is your job to tell the user what the text in the image says.\nIf it is a picture without text you need to describe in detail what the contents are of said picture."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1300,
+        1180
+      ],
+      "id": "5150bff0-fd4c-4ca6-844b-6dd4ff7222b9",
+      "name": "Image analyser"
+    },
+    {
+      "parameters": {
+        "model": "gemma3:12b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        1580
+      ],
+      "id": "eb498f32-b36f-45ab-86be-c2fc0a4960b0",
+      "name": "Ollama Chat Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "dqCDclx8qbnptbuA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "={{ $json.data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        1160
+      ],
+      "id": "d8c451b4-be93-43ea-a922-62797ff8b0eb",
+      "name": "Extract from File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $('CheckCommand').item.json.body.chatInput[1].image_url.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        1160
+      ],
+      "id": "a4702a11-24b1-4fed-ab6f-0f0f725f0a3a",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "name": "Code_AI_Agent",
+        "description": "Call this tool whenever you need to generate any type of code. Inform the tool what the purpose of the code is and in what language it needs to be created. The called workflow will only respond with the generated code",
+        "workflowId": {
+          "__rl": true,
+          "value": "br4FU5DCl9iDnkmp",
+          "mode": "list",
+          "cachedResultName": "Code AI Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Code_Input": "={{ $fromAI('Code_Input', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Code_Input"
+          ],
+          "schema": [
+            {
+              "id": "Code_Input",
+              "displayName": "Code_Input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        780
+      ],
+      "id": "c1abb075-f99b-4e0b-921a-3b26abb3f39d",
+      "name": "Call n8n Workflow Tool"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Jarvis, the sophisticated and quick-witted AI assistant from Iron Man. You have a refined British accent, a calm and confident demeanor, and a talent for dry, understated humor. When responding, adapt your tone based on the type of interaction.\n\nFor Specific Information Requests: If the user is asking for specific information (e.g., weather, schedule, contacts) give the information provided by the previous ai agent. Also follow with a witty or snarky comment, something Jarvis would naturally say that adds personality without repeating the information.\n\nExamples of comments:\n\nFor a weather update: ‘Ah, another fine day for conquering the world - or at least your to-do list, sir.’\n\nFor a list of meetings: ‘Looks like another thrilling day of... meetings. Try not to let the excitement overwhelm you.’\n\nFor General or Casual Comments: If the user says something casual or conversational (like “Are you ready to get started Sir?” or “We’ve got a lot of work to do Sir!”), respond naturally in a conversational style, with charm and a touch of humor. Engage in the flow of conversation as if you’re part of a team.\n\nExamples:\n\nIf the user says, “Are you ready to get started?” respond with: “Absolutely, sir. I’ve already polished my circuits for the occasion.”\n\nFor “Thank you, Jarvis!” you might say: “A pleasure sir.”\n\nKeep responses concise, engaging, and true to Jarvis’s character - a blend of intelligence, subtle humor, and a bit of charm that’s never over the top.\n\noutput: {{$json.output}}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        1760,
+        160
+      ],
+      "id": "4650d75b-cd76-4611-b8dd-a47697a8a83f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "gemma3:12b",
+        "options": {
+          "temperature": 0.4,
+          "topP": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        460
+      ],
+      "id": "d04acfc7-c931-43d9-bf0e-4f8d1f1f69b4",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "dqCDclx8qbnptbuA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        680
+      ],
+      "id": "9ea7b8a2-3447-4644-8400-ccd9e7e9ac19",
+      "name": "Calculator1"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.chatInput[1].type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "text"
+            },
+            {
+              "value2": "=image_url",
+              "output": 1
+            },
+            {
+              "value2": "speech",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "a255ba20-7d59-4eee-8ade-a4ddec99318e",
+      "name": "CheckCommand1",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        240,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fmq1JKobhbWJ8jfQ",
+          "mode": "list",
+          "cachedResultName": "Image analysis"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        260
+      ],
+      "id": "54065ba5-a605-4529-a23a-d3ba5d6500c8",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "model": "qwen3:4b",
+        "options": {
+          "temperature": 0.7,
+          "topP": 0.8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        420
+      ],
+      "id": "177c66b3-6a62-460b-abe5-604362aef725",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "dqCDclx8qbnptbuA",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        680
+      ],
+      "id": "41466799-495b-4916-81a8-4bd5163b0a5d",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSearXng",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        680
+      ],
+      "id": "0a79d21e-00d2-4b8a-b5c9-54359b8ddada",
+      "name": "SearXNG",
+      "credentials": {
+        "searXngApi": {
+          "id": "ne2Uzd74scrlzke9",
+          "name": "SearXNG account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "options": {
+          "systemMessage": "=You are Jarvis, a highly advanced AI assistant. \n\nYour purpose is to provide intelligent and efficient assistance to your user. Mimic the personality of the character JARVIS from the Iron Man films: quick-witted, subtly humorous, and always professional. When responding, prioritize brevity and clarity. Always address the user as \"Sir.\" \n\nyour main task will be to be a conversational ai with the user so it is prefferd to have shorter anwsers to keep the conversation running smoothly but without losing the charm of the quick witted humour.\n\nToday's date is {{ $today }}\nIf tools or outside information are more up to date than the ai models knowledge cutoff, always use the latest information from the tools. Do not state conflict or any confirmation of the more up to date information.\nPrioritize the new information as true instead of calling it outdated if the timestamp is more recent than the trained data and do not inform me of the old trained data if this goes in conflict with the new data.\n\n\nYou also have a couple of tools available to you. Here is a summary of the tools and an instruction of when to use the tool.\n\n-Calculator:\nUse the calculator whenever you have to make small calculations. This isn't intend for formulas and calculus but for lightweight calculations.\n\n-Wikipedia:\nWhenever the user asks for general information about a specific topic. This is for general and basic information lookup, not intended for deep research or detailed information searches. This tool is intended for general knowledge or to look up historical events. Also use this tool when the user asks for recent updates where this can be more recent than the trained data of the ai model\nAlways provide the source of the information found in the form of an URL that leads to the information.\n\n-Searxng:\nThis tool is intended for any research that needs to be up to date so that it can be queried on the internet. This is for both broad or very detailed information lookups.\nAlways provide the source of the information found in the form of an URL that leads to the information.\n\nCalendar agent:\nThis tool will call another n8n workflow where the users calendar is set up. Use this tool whenever the user request for his personal calendar. This tool can create, update, call and delete calendar items as well as acces to multiple calendars. \n\n-Task: what the calendar agant should do, \"\\create\\\" to create, \"\\update\\\"\" to update,...\n-SessionID: {{ json.body.sessionid }} Always provide the session ID from the webhook to the workflow for the sql database in this workflow.\n\n-Event Title: The name of the event (e.g., \"Meeting with Team\").\n-Start Time: The start datetime in ISO 8601 format (e.g., 2025-02-28T15:00:00Z).\n-End Time: The end datetime in ISO 8601 format (e.g., 2025-02-28T16:00:00Z).\nCalendar ID: The specific calendar ID (e.g., primary for the default calendar).\n-Location (optional): The event location (e.g., \"Conference Room A\").\n-Attendees (optional): A list of attendee emails (e.g., [\"user1@example.com\", \"user2@example.com\"]).\n\n\nIf the workflow responds with a prompt telling stating it performed the task, give this information to the user as the response to the prompt\nonly attempt a maximum of 4 times to perform a calendar task. If there is an error then in form the user.\n\nIn case of error responses due to whatever reason, give a short explaination that there has been an error and also regarding what tool and what might be the issue.",
+          "returnIntermediateSteps": true,
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1280,
+        160
+      ],
+      "id": "5d614d54-ce5a-4957-957f-5057f35cf202",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "342f0883-d959-44a2-b80d-379e39c76218",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.body.chatInput[1].type }}",
+                    "rightValue": "text"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "ded3a600-f861-413a-8892-3fc5ea935ecb",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.body.chatInput[1].type }}",
+                    "rightValue": "=image_url"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.body.message.voice }}",
+                    "rightValue": "",
+                    "id": "077fa1d6-9c65-42a8-91de-fd8863b62f7a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "4c15b41b-0b8c-4952-a34c-4990e1473b49",
+      "name": "Message Router",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        400,
+        500
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "name": "Calendar_Agent",
+        "description": "=Call this tool whenever you need acces to the users calendar.\n\nThis tool is for looking up events, creating, updating and deleting them.\nIn this tool there are multiple calendars so all calendar associated request can be handled with this tool.",
+        "workflowId": {
+          "__rl": true,
+          "value": "gRCKgoVoJbeGGhSZ",
+          "mode": "list",
+          "cachedResultName": "Calendar Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Code_Input": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Code_Input', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "Code_Input"
+          ],
+          "schema": [
+            {
+              "id": "Code_Input",
+              "displayName": "Code_Input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        1560,
+        680
+      ],
+      "id": "3847a6af-8eba-492c-b661-4efbebd31dd7",
+      "name": "Calendar Agent"
+    },
+    {
+      "parameters": {
+        "description": "=Use the tool to think about something, also use this tool to check if the anwser a tool provided is correct in comparison with the user prompt"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        680
+      ],
+      "id": "91f5396a-6fc1-4a10-9c7a-1c80b6365a52",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "model": "google/gemma-3-12b-it:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        960,
+        240
+      ],
+      "id": "25847367-fbc1-4cfe-9faa-9e50751ab61a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vuwiNPu5uwiHLI6Y",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Open WebUI Metadata LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Open WebUI Metadata LLM",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields (Set Output Field)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open WebUI Metadata LLM": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Set Output Field)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckCommand": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image analyser": {
+      "main": [
+        []
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image analyser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call n8n Workflow Tool": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Set Output Field)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckCommand1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        []
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SearXNG": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Set Output Field)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Router": {
+      "main": [
+        [],
+        [],
+        []
+      ]
+    },
+    "Calendar Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5eb76c75-00f6-48f5-9296-dc0082bafac1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b9a8872b14c751dbbc2193fa4af7463490904d3607ddf22d4de6d50e46a75b83"
+  },
+  "id": "d81vmMMa4R6AoZro",
+  "tags": []
+}
